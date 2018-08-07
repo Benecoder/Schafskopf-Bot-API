@@ -33,7 +33,9 @@ karten=[(i+j)for j in kartenfarbe
         for  i in kartenwert]
 
 #Dictionary Karte und Kartenname
-kartenname=dict(zip(karten,[(j+"_"+i)for j in farbe 
+kartenwertbezeichnung=dict(zip(kartenwert,wert))
+kartenfarbebezeichnung=dict(zip(kartenfarbe,farbe))
+kartenbezeichnung=dict(zip(karten,[(j+"_"+i)for j in farbe 
                        for  i in wert]))
 
 print(kartenname)
