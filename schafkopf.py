@@ -14,6 +14,42 @@ ass     17      27      37      47
 """
 import random
 
+#Liste der Trümpfe in absteigender Stich wertung
+trumpf_wert = [15,25,35,45,14,24,34,44,
+             37,33,36,32,31,30]
+    
+#stellt die farbe einer Karte fest
+#Trumpf 0,Eichel 1,Gras 2,Herz 3,Schelle 4
+def get_farbe(karte):
+    if karte in trumpf_wert:
+        return 0
+    else:
+        return karte//10
+
+
+#entscheidet wer einen traditionellen sau Stich gewinnt
+def argmaxsau(Stich):
+    if Stich[0] not in trumpf_wert:
+        farbe = Stich[0]//10
+        farb_wert = [7,3,6,2,1,0]
+        farb_wert = [farbe*10+i for i in farb_wert]
+        gesamt_wert = trumpf_wert+farb_wert
+    else:
+        gesamt_wert = trumpf_wert
+    
+    for i in gesamt_wert:
+        for j in range(4):
+            if i == Stich[j]:
+                return j
+            
+            
+#rechnet wie viele Punkte in einem Stich sind
+punkt_wert = {'0':0,'1':0,'2':0,'3':10,'4':2,'5':3,'6':4,'7':11}
+def worth_stich(Stich):
+    zeichen = [i%10 for i in Stich]
+    punkte = [punkt_wert[str(i)] for i in zeichen]
+    return sum(punkte)
+
 class player():
     #hier kriegt es seinen namen
     def __init__(self,name):
@@ -47,43 +83,27 @@ class player():
         self.info = info
         
     #hier kriegt es was liegt und muss sagen wie er reagiert
-    #'liegt' ist eine List der gelegten Karten in reihenfolge
-    def play(self,liegt):
-        legen = random.randint(0,len(self.karten)-1)  #karte aussuchen
-        karte = self.karten[legen]                  
-        self.karten.pop(legen)                      
-        return karte                           #karte legen
+    #'stich' ist eine List der gelegten Karten in reihenfolge
+    def play(self,stich):
+        if len(stich) == 0:
+            karte = random.choice(self.karten)  #karte aussuchen
+            self.karten.remove(karte)                      
+            return karte                           #karte legen
+        else:
+            gespielte_farbe = get_farbe(stich[0])
+            for karte in self.karten:
+                if get_farbe(karte) == gespielte_farbe:
+                    self.karten.remove(karte)
+                    return karte
+            karte = random.choice(self.karten)  #karte aussuchen
+            self.karten.remove(karte) 
+            return karte                           #karte legen
+            
+            
     
     #info über den Stich und an wen er gegangen ist
     def outcome(self,stich,winner):
         self.info = [stich,winner]
-    
-
-#Liste der Trümpfe in absteigender Stich wertung
-trumpf_wert = [15,25,35,45,14,24,34,44,
-             37,33,36,32,31,30]
-#entscheidet wer einen traditionellen sau Stich gewinnt
-def argmaxsau(Stich):
-    if Stich[0] not in trumpf_wert:
-        farbe = Stich[0]//10
-        farb_wert = [7,3,6,2,1,0]
-        farb_wert = [farbe*10+i for i in farb_wert]
-        gesamt_wert = trumpf_wert+farb_wert
-    else:
-        gesamt_wert = trumpf_wert
-    
-    for i in gesamt_wert:
-        for j in range(4):
-            if i == Stich[j]:
-                return j
-            
-            
-#rechnet wie viele Punkte in einem Stich sind
-punkt_wert = {'0':0,'1':0,'2':0,'3':10,'4':2,'5':3,'6':4,'7':11}
-def worth_stich(Stich):
-    zeichen = [i%10 for i in Stich]
-    punkte = [punkt_wert[str(i)] for i in zeichen]
-    return sum(punkte)
             
     
 class game():
@@ -103,6 +123,8 @@ class game():
         for i in range(4):
             self.players[i].handout(self.karten[i*8:(i+1)*8])
             self.player_cards.append(self.karten[i*8:(i+1)*8])
+            
+        self.gespielt = []
                 
         #Testen wer spielt
         team_call  = []         
@@ -126,7 +148,8 @@ class game():
 
             #auf was wird gespielt
             self.angespielt = self.players[self.spieler1].target()
-            assert self.angespielt not in self.player_cards[self.spieler1]     #verifiziert, das er das ass nicht selber hat
+            assert self.angespielt not in self.player_cards[self.spieler1]     #verifiziert, dass es das ass nicht selber hat
+            assert self.angespielt in [17,27,47]                               #verifiziert, dass es ein nicht-herz-ass ist
             for i in range(4):
                 if self.angespielt in self.player_cards[i]:
                     self.spieler2 = i
@@ -146,10 +169,28 @@ class game():
             for i in range(8):
                 reihenfolge = [0,1,2,3]
                 reihenfolge = reihenfolge[winner:]+reihenfolge[:winner]
+                
                 Stich  = []
-                for j in reihenfolge:
+                    
+                Stich.append(self.players[reihenfolge[0]].play(Stich))
+                assert Stich[0] in self.player_cards[reihenfolge[0]]            #verifiziert, dass es die Karte nicht selber hat
+                assert Stich[0] not in self.gespielt                            #verifiziert, dass die Karte nicht schon gespielt wurde
+                self.player_cards[reihenfolge[0]].remove(Stich[0])
+                self.gespielt.append(Stich[-1])
+                
+                farbe = get_farbe(Stich[0])
+                
+                for j in reihenfolge[1:]:
                     Stich.append(self.players[j].play(Stich))
-                    assert Stich[-1] in self.player_cards[j]
+                    
+                    assert Stich[-1] in self.player_cards[j]                        #verifiziert, dass er die Karte selber hat
+                    assert Stich[-1] not in self.gespielt                           #verifiziert, dass die Karte nicht schon gespielt wurde
+                    kartenfarbe = get_farbe(Stich[-1])
+                    if kartenfarbe != farbe:                                        #verifiziert, dass er nicht doch die richtige farbe hätte spielen können
+                        mogliche_farben = [get_farbe(karte) for karte in self.player_cards[j]]
+                        assert farbe not in mogliche_farben
+                    self.player_cards[j].remove(Stich[-1])
+                    
                 winner = argmaxsau(Stich)
                 punkte[winner] += worth_stich(Stich)
                 for j in range(4):
@@ -169,24 +210,42 @@ class game():
                     
                 
         elif self.ramsch:
-                
+
             #sagt allen was abgeht
             for i in range(4):
                 self.players[i].playmode([0])
-                
+            
             if talkative:
                 print('Ramsch!')
-                
+            
             #spielt die Stiche
-            punkte= [0,0,0,0]
-            winner = 0
+            punkte = [0,0,0,0]
+            winner = 0 
             for i in range(8):
-                Stich = []
                 reihenfolge = [0,1,2,3]
                 reihenfolge = reihenfolge[winner:]+reihenfolge[:winner]
-                for j in reihenfolge:
+                
+                Stich  = []
+                    
+                Stich.append(self.players[reihenfolge[0]].play(Stich))
+                assert Stich[0] in self.player_cards[reihenfolge[0]]            #verifiziert, dass es die Karte nicht selber hat
+                assert Stich[0] not in self.gespielt                            #verifiziert, dass die Karte nicht schon gespielt wurde
+                self.player_cards[reihenfolge[0]].remove(Stich[0])
+                self.gespielt.append(Stich[-1])
+                
+                farbe = get_farbe(Stich[0])
+                
+                for j in reihenfolge[1:]:
                     Stich.append(self.players[j].play(Stich))
-                    assert Stich[-1] in self.player_cards[j]
+                    
+                    assert Stich[-1] in self.player_cards[j]                        #verifiziert, dass er die Karte selber hat
+                    assert Stich[-1] not in self.gespielt                           #verifiziert, dass die Karte nicht schon gespielt wurde
+                    kartenfarbe = get_farbe(Stich[-1])
+                    if kartenfarbe != farbe:                                        #verifiziert, dass er nicht doch die richtige farbe hätte spielen können
+                        mogliche_farben = [get_farbe(karte) for karte in self.player_cards[j]]
+                        assert farbe not in mogliche_farben
+                    self.player_cards[j].remove(Stich[-1])
+                    
                 winner = argmaxsau(Stich)
                 punkte[winner] += worth_stich(Stich)
                 for j in range(4):
@@ -207,13 +266,13 @@ class game():
             if not(durchmarsch):
                 print(self.players[loser].name+' hat den Ramsch gewonnen.')
             else:
-                print(self.players[winner].winner+' hat einen Durchmarsch hingelegt.')
+                print(self.players[winner].name+' hat einen Durchmarsch hingelegt.')
                 
 
+for _ in range(100):
+    p1 = player('p1')
+    p2 = player('p2')
+    p3 = player('p3')
+    p4 = player('p4')
 
-p1 = player('p1')
-p2 = player('p2')
-p3 = player('p3')
-p4 = player('p4')
-
-test_g = game(p1,p2,p3,p4,talkative = True)
+    test_g = game(p1,p2,p3,p4,talkative = True)
