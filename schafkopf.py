@@ -14,6 +14,36 @@ ass     17      27      37      47
 """
 import random
 
+##Zusatz Marie
+
+#class Karten():
+ #       def __init__(self, farbe, wert):
+ #              self.farbe=farbe
+ #              self.wert=wert
+
+#Mögliche Farben/Werte
+farbe=("Eichel", "Gras", "Herz", "Schelle")
+wert=("7","8","9","Koenig","10","Sau","Unter","Ober")
+
+#Darstellung im Bot
+kartenwert=[i for i in range(8)]
+kartenfarbe=[(j+1)*10 for j in range(4)]
+
+karten=[(i+j)for j in kartenfarbe
+        for  i in kartenwert]
+
+#Dictionary Karte und Kartenname
+kartenwertbezeichnung=dict(zip(kartenwert,wert))
+kartenfarbebezeichnung=dict(zip(kartenfarbe,farbe))
+kartenbezeichnung=dict(zip(karten,[(j+"_"+i)for j in farbe 
+                       for  i in wert]))
+
+## Zusatz Marie Ende
+
+
+             
+      
+        
 #Liste der Trümpfe in absteigender Stich wertung
 trumpf_wert = [15,25,35,45,14,24,34,44,
              37,33,36,32,31,30]
