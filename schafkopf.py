@@ -269,7 +269,7 @@ class game():
                 print(self.players[winner].name+' hat einen Durchmarsch hingelegt.')
                 
 
-for _ in range(100):
+for _ in range(10):
     p1 = player('p1')
     p2 = player('p2')
     p3 = player('p3')
