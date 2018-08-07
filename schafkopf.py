@@ -38,8 +38,6 @@ kartenfarbebezeichnung=dict(zip(kartenfarbe,farbe))
 kartenbezeichnung=dict(zip(karten,[(j+"_"+i)for j in farbe 
                        for  i in wert]))
 
-print(kartenname)
-
 ## Zusatz Marie Ende
 
 
