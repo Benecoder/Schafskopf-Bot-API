@@ -5,11 +5,11 @@ Kartendarstellung
 7       10      20      30      40
 8       11      21      31      41
 9       12      22      32      42
-10      13      23      33      43
-unter   14      24      34      44
-ober    15      25      35      45
-könig   16      26      36      46
-ass     17      27      37      47
+koenig  13      23      33      43
+10      14      24      34      44
+sau     15      25      35      45
+unter   16      26      36      46
+ober    17      27      37      47
 
 """
 import random
@@ -38,15 +38,12 @@ kartenfarbebezeichnung=dict(zip(kartenfarbe,farbe))
 kartenbezeichnung=dict(zip(karten,[(j+"_"+i)for j in farbe 
                        for  i in wert]))
 
-## Zusatz Marie Ende
-
-
-             
-      
+## Zusatz Marie Ende      
         
 #Liste der Trümpfe in absteigender Stich wertung
-trumpf_wert = [15,25,35,45,14,24,34,44,
-             37,33,36,32,31,30]
+trumpf_wert = [17,27,37,47,16,26,36,46,
+             35,34,33,32,31,30]
+punkt_wert = {'0':0,'1':0,'2':0,'3':4,'4':10,'5':11,'6':2,'7':3}
     
 #stellt die farbe einer Karte fest
 #Trumpf 0,Eichel 1,Gras 2,Herz 3,Schelle 4
@@ -60,12 +57,14 @@ def get_farbe(karte):
 #entscheidet wer einen traditionellen sau Stich gewinnt
 def argmaxsau(Stich):
     if Stich[0] not in trumpf_wert:
-        farbe = Stich[0]//10
-        farb_wert = [7,3,6,2,1,0]
+        farbe = get_farbe(Stich[0])
+        farb_wert = [5,4,3,2,1,0]
         farb_wert = [farbe*10+i for i in farb_wert]
         gesamt_wert = trumpf_wert+farb_wert
     else:
         gesamt_wert = trumpf_wert
+        
+        
     
     for i in gesamt_wert:
         for j in range(4):
@@ -74,7 +73,6 @@ def argmaxsau(Stich):
             
             
 #rechnet wie viele Punkte in einem Stich sind
-punkt_wert = {'0':0,'1':0,'2':0,'3':10,'4':2,'5':3,'6':4,'7':11}
 def worth_stich(Stich):
     zeichen = [i%10 for i in Stich]
     punkte = [punkt_wert[str(i)] for i in zeichen]
@@ -91,14 +89,22 @@ class player():
         
     #hier sagt es ob es spielen will
     def call(self):
-        self.spielt =  bool(random.getrandbits(1)) 
-        return self.spielt
+        alle_Asse = True
+        for i in [15,25,45]:
+            if i not in self.karten:
+                alle_asse = False
+        
+        if not(alle_asse):
+            self.spielt =  bool(random.getrandbits(1)) 
+            return self.spielt
+        else:
+            return False
     
     #hier wird er gefragt auf wen es spielen will
     def target(self):
-        a = random.choice([17,27,47])
+        a = random.choice([15,25,45])
         while a in self.karten:
-            a = random.choice([17,27,47])
+            a = random.choice([15,25,45])
         return a
         
     #hier kriegt wer gesagt welcher spielmodus und wer auf wen gespielt wird
@@ -179,7 +185,7 @@ class game():
             #auf was wird gespielt
             self.angespielt = self.players[self.spieler1].target()
             assert self.angespielt not in self.player_cards[self.spieler1]     #verifiziert, dass es das ass nicht selber hat
-            assert self.angespielt in [17,27,47]                               #verifiziert, dass es ein nicht-herz-ass ist
+            assert self.angespielt in [15,25,45]                               #verifiziert, dass es ein nicht-herz-ass ist
             for i in range(4):
                 if self.angespielt in self.player_cards[i]:
                     self.spieler2 = i
@@ -236,7 +242,7 @@ class game():
                     if self.spieler1 != i and self.spieler2 != i:
                         winner.append(i)
                         
-                print(self.players[winner[0]].name+' und '+self.players[winner[1]].name+' haben das Spiel nicht gewonnen.')
+                print(self.players[winner[0]].name+' und '+self.players[winner[1]].name+' haben das Spiel gewonnen.')
                     
                 
         elif self.ramsch:
